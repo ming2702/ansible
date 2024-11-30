@@ -1,0 +1,10 @@
+<package format="2">
+  <name>{{ package_name }}</name>
+  <version>0.0.0</version>
+  <description>{{ description }}</description>
+  <maintainer email="{{ maintainer_email }}">{{ maintainer }}</maintainer>
+  <license>Apache License 2.0</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <build_depend>rclpy</build_depend>
+  <exec_depend>rclpy</exec_depend>
+</package>
