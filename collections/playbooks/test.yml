@@ -1,0 +1,35 @@
+# Use a base image compatible with ARM architecture
+FROM arm64v8/ubuntu:22.04
+
+# Set environment variables
+ENV ROS_DISTRO humble
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install necessary dependencies and ROS 2
+RUN apt-get update && \
+    apt-get install -y apt-utils curl gnupg2 lsb-release python3-pip && \
+    pip3 install jinja2 && \
+    curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | gpg --dearmor -o /usr/share/keyrings/ros-archive-keyring.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu humble main" > /etc/apt/sources.list.d/ros2-latest.list && \
+    apt-get update && \
+    apt-get install -y ros-${ROS_DISTRO}-desktop python3-colcon-common-extensions python3-rclpy python3-std-msgs && \
+    apt-get install -y tzdata && \
+    ln -fs /usr/share/zoneinfo/Asia/Hong_Kong /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy the template files and the generation script
+COPY templates /root/templates
+COPY generate_files.py /root/generate_files.py
+
+# Create ROS 2 workspace
+RUN mkdir -p /root/ros2_ws/src
+
+# Generate ROS 2 Package files
+RUN python3 /root/generate_files.py
+
+# Build the Package
+RUN cd /root/ros2_ws && colcon build
+
+# Source the setup script and define the entry point
+ENTRYPOINT ["/bin/bash", "-c", "source /opt/ros/${ROS_DISTRO}/setup.bash && exec \"$@\"", "bash"]
